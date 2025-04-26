@@ -16,4 +16,4 @@ async function createUser(email, hash) {
     return result.lastID;
 }
 
-module.exports = { findByEmail, createUser };
+module.exports = { findByEmail, createUser, findByUsername };
