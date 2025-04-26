@@ -12,12 +12,13 @@ const { csrfProtection, csrfErrorHandler } = require('./middleware/csrf');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Basic security
 app.use(helmet());
-app.use(cors({
-    origin: 'http://localhost:8080',
-    credentials: true
-}));
+app.use(
+    cors({
+        origin: 'http://localhost:5000',
+        credentials: true
+    })
+);
 
 // Body + cookies
 app.use(express.json());
