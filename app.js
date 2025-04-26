@@ -5,7 +5,8 @@ const cors            = require('cors');
 const cookieParser    = require('cookie-parser');
 require('./config/db'); // init DB & tables
 
-const authRoutes      = require('./routes/authRoutes');
+const authRoutes = require('./routes/authRoutes');
+const postRoutes = require('./routes/postRoutes');
 const authMiddleware  = require('./middleware/authMiddleware');
 const { csrfProtection, csrfErrorHandler } = require('./middleware/csrf');
 
@@ -25,23 +26,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-// CSRF protection *after* cookieParser, before your routes
+// CSRF protection after cookieParser, before routes
 app.use(csrfProtection);
 
-// Expose the CSRF token via JSON so your frontend can grab it
+// Expose the CSRF token via JSON
 app.get('/csrf-token', (req, res) => {
     res.json({ csrfToken: req.csrfToken() });
 });
 
-// Your existing routes
 app.use('/auth', authRoutes);
+app.use('/posts', postRoutes);
 app.get('/secure', authMiddleware, (req, res) => {
     res.json({ message: `Hello user ${req.userId}` });
 });
 
-// CSRF error handler must come *after* your routes
 app.use(csrfErrorHandler);
 
 app.listen(PORT, () =>
-    console.log(`🚀 Server listening on http://localhost:${PORT}`)
+    console.log(`Server listening on http://localhost:${PORT}`)
 );
