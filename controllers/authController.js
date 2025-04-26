@@ -2,29 +2,26 @@ const authService = require('../services/authService');
 
 async function register(req, res) {
     try {
+        const { email, password, username } = req.body;
         const { userId, token } = await authService.register(
-            req.body.email,
-            req.body.password
+            email,
+            password,
+            username
         );
         res.status(201).json({ userId, token });
     } catch (err) {
         res
-            .status(err.status || 500)
-            .json({ error: err.message || 'Server error' });
+            .status(err.status || 500).json({ error: err.message });
     }
 }
 
 async function login(req, res) {
     try {
-        const { userId, token } = await authService.login(
-            req.body.email,
-            req.body.password
-        );
+        const { email, password } = req.body;
+        const { userId, token } = await authService.login(email, password);
         res.json({ userId, token });
     } catch (err) {
-        res
-            .status(err.status || 500)
-            .json({ error: err.message || 'Server error' });
+        res.status(err.status || 500).json({ error: err.message });
     }
 }
 
