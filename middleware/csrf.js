@@ -1,11 +1,13 @@
+require('dotenv').config();
 const csurf = require('csurf');
 
-// Use cookie-based CSRF tokens
+// const isProduction = process.env.NODE_ENV === 'production';
+
 const csrfProtection = csurf({
     cookie: {
-        httpOnly: true,    // JS can’t read the cookie
-        secure:   true,    // only over HTTPS in production
-        sameSite: 'strict' // mitigate CSRF by requiring same-site requests
+        httpOnly: true,
+        secure:   false,  // allow over HTTP in dev
+        sameSite: 'lax'   // still block cross-site write requests
     }
 });
 
