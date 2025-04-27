@@ -1,7 +1,14 @@
 const postDao = require('../dao/postDao');
+const mediaDao = require('../dao/mediaDao');
 
-async function createPost(userId, title, content, country, visitDate) {
-    return postDao.createPost(userId, title, content, country, visitDate);
+async function createPost(userId, title, content, country, visitDate, files = []) {
+    const postId = await postDao.createPost(userId, title, content, country, visitDate);
+    // for each uploaded file, store its public URL
+    for (const file of files) {
+        const url = `/uploads/${file.filename}`;
+        await mediaDao.addImage(postId, url);
+    }
+    return postId;
 }
 
 async function fetchPost(id) {
@@ -11,7 +18,8 @@ async function fetchPost(id) {
         err.status = 404;
         throw err;
     }
-    return post;
+    const images = await mediaDao.getImagesByPost(id);
+    return { ...post, images };
 }
 
 async function listPosts(limit, offset) {

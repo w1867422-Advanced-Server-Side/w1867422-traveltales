@@ -3,12 +3,9 @@ const postService = require('../services/postService');
 async function createPost(req, res) {
     try {
         const { title, content, country, visitDate } = req.body;
+        const files = req.files || [];
         const postId = await postService.createPost(
-            req.userId,
-            title,
-            content,
-            country,
-            visitDate
+            req.userId, title, content, country, visitDate, files
         );
         res.status(201).json({ id: postId });
     } catch (err) {

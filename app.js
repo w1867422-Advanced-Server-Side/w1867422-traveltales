@@ -4,6 +4,7 @@ const helmet          = require('helmet');
 const cors            = require('cors');
 const cookieParser    = require('cookie-parser');
 require('./config/db'); // init DB & tables
+const path = require('path');
 
 const authRoutes = require('./routes/authRoutes');
 const postRoutes = require('./routes/postRoutes');
@@ -21,7 +22,6 @@ app.use(
     })
 );
 
-// Body + cookies
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -33,6 +33,8 @@ app.use(csrfProtection);
 app.get('/csrf-token', (req, res) => {
     res.json({ csrfToken: req.csrfToken() });
 });
+
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 app.use('/auth', authRoutes);
 app.use('/posts', postRoutes);

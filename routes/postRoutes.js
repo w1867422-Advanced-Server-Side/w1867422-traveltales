@@ -1,5 +1,6 @@
-const express         = require('express');
-const authMiddleware  = require('../middleware/authMiddleware');
+const express= require('express');
+const auth  = require('../middleware/authMiddleware');
+const uploadImage  = require('../middleware/uploadImage');
 const {
     createPost,
     getPost,
@@ -10,13 +11,21 @@ const {
 
 const router = express.Router();
 
-// Public endpoints
-router.get('/', listPosts);
-router.get('/:id', getPost);
+router.get('/',     listPosts);
+router.get('/:id',  getPost);
 
-// Protected endpoints
-router.post('/',    authMiddleware, createPost);
-router.put('/:id',  authMiddleware, updatePost);
-router.delete('/:id', authMiddleware, deletePost);
+router.post(
+    '/',
+    auth,
+    uploadImage.array('images', 5),
+    createPost
+);
+router.put(
+    '/:id',
+    auth,
+    uploadImage.array('images', 5),
+    updatePost
+);
+router.delete('/:id', auth, deletePost);
 
 module.exports = router;

@@ -32,6 +32,15 @@ db.serialize(() => {
       FOREIGN KEY(author_id) REFERENCES users(id)
     )
   `);
+    db.run(`
+    CREATE TABLE IF NOT EXISTS media (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id     INTEGER NOT NULL,
+      url         TEXT    NOT NULL,
+      created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+    )
+  `);
 });
 
 // Promise-based wrappers
