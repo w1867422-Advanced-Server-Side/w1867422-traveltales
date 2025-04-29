@@ -1,68 +1,42 @@
 const postService = require('../services/postService');
+const { catchAsync } = require('../utils/errorHandler');
 
-async function createPost(req, res) {
-    try {
-        const { title, content, country, visitDate } = req.body;
-        const files = req.files || [];
-        const postId = await postService.createPost(
-            req.userId, title, content, country, visitDate, files
-        );
-        res.status(201).json({ id: postId });
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.create = catchAsync(async (req,res)=>{
+    const id = await postService.createPost(
+        req.user.id,
+        req.body,
+        req.files || []
+    );
+    res.status(201).json({ id });
+});
 
-async function getPost(req, res) {
-    try {
-        const post = await postService.fetchPost(+req.params.id);
-        res.json(post);
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.list = catchAsync(async (req,res)=>{
+    const { limit,offset,country,author } = req.query;
+    const posts = await postService.listPosts({
+        limit:+limit||10,
+        offset:+offset||0,
+        country,
+        authorId: author
+    });
+    res.json(posts);
+});
 
-async function listPosts(req, res) {
-    try {
-        const limit  = parseInt(req.query.limit)  || 10;
-        const offset = parseInt(req.query.offset) || 0;
-        const posts = await postService.listPosts(limit, offset);
-        res.json(posts);
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.get = catchAsync(async (req,res)=>{
+    const post = await postService.fetchPost(+req.params.id);
+    res.json(post);
+});
 
-async function updatePost(req, res) {
-    try {
-        const { title, content, country, visitDate } = req.body;
-        const post = await postService.updatePost(
-            req.userId,
-            +req.params.id,
-            title,
-            content,
-            country,
-            visitDate
-        );
-        res.json(post);
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.update = catchAsync(async (req,res)=>{
+    const post = await postService.updatePost(
+        req.user.id,
+        +req.params.id,
+        req.body,
+        req.files || []
+    );
+    res.json(post);
+});
 
-async function deletePost(req, res) {
-    try {
-        await postService.deletePost(req.userId, +req.params.id);
-        res.json({ id: +req.params.id });
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
-
-module.exports = {
-    createPost,
-    getPost,
-    listPosts,
-    updatePost,
-    deletePost
-};
+exports.remove = catchAsync(async (req,res)=>{
+    await postService.deletePost(req.user.id, +req.params.id);
+    res.json({ id:+req.params.id });
+});

@@ -1,31 +1,21 @@
-const express= require('express');
-const auth  = require('../middleware/authMiddleware');
-const uploadImage  = require('../middleware/uploadImage');
-const {
-    createPost,
-    getPost,
-    listPosts,
-    updatePost,
-    deletePost
-} = require('../controllers/postController');
+const router   = require('express').Router();
+const ctrl     = require('../controllers/postController');
+const auth     = require('../middleware/authMiddleware');
+const upload   = require('../middleware/uploadImage');
 
-const router = express.Router();
+router.get('/',      ctrl.list);
+router.get('/:id',   ctrl.get);
 
-router.get('/',     listPosts);
-router.get('/:id',  getPost);
-
-router.post(
-    '/',
+router.post('/',
     auth,
-    uploadImage.array('images', 5),
-    createPost
-);
-router.put(
-    '/:id',
+    upload.array('images',5),
+    ctrl.create);
+
+router.put('/:id',
     auth,
-    uploadImage.array('images', 5),
-    updatePost
-);
-router.delete('/:id', auth, deletePost);
+    upload.array('images',5),
+    ctrl.update);
+
+router.delete('/:id', auth, ctrl.remove);
 
 module.exports = router;

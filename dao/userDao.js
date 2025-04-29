@@ -1,23 +1,18 @@
-const { get, run } = require('../config/db');
+const { run, get } = require('../config/database');
 
-async function findByEmail(email) {
-    return get('SELECT * FROM users WHERE email = ?', [email]);
-}
-
-async function findByUsername(username) {
-    return get('SELECT * FROM users WHERE username = ?', [username]);
-}
-
-async function createUser(email, passwordHash, username) {
-    const result = await run(
-        'INSERT INTO users (email, password, username) VALUES (?, ?, ?)',
-        [email, passwordHash, username]
+exports.createUser = async ({ username,email,password,role }) => {
+    const r = await run(
+        `INSERT INTO users (username,email,password,role) VALUES(?,?,?,?)`,
+        [username,email,password,role]
     );
-    return result.lastID;
-}
-
-module.exports = {
-    findByEmail,
-    findByUsername,
-    createUser
+    return { id:r.lastID, username, email, role };
 };
+
+exports.findByEmail = email =>
+    get(`SELECT * FROM users WHERE email = ?`, [email]);
+
+exports.findById = id =>
+    get(`SELECT id,username,email,role,created_at FROM users WHERE id = ?`,[id]);
+
+exports.countUsers = () =>
+    get(`SELECT COUNT(*) AS cnt FROM users`).then(r=>r.cnt);

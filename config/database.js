@@ -3,24 +3,25 @@ const sqlite3 = require('sqlite3').verbose();
 const path    = require('path');
 
 const dbPath = process.env.DATABASE_FILE
-    || path.join(__dirname, '../traveltales.db');
+    || path.join(__dirname, '../traveltales.database');
 
-const db = new sqlite3.Database(dbPath, err => {
+const database = new sqlite3.Database(dbPath, err => {
     if (err) console.error('DB connect error:', err.message);
     else     console.log('SQLite connected at', dbPath);
 });
 
-db.serialize(() => {
-    db.run(`
+database.serialize(() => {
+    database.run(`
     CREATE TABLE IF NOT EXISTS users (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       email       TEXT    NOT NULL UNIQUE,
       username    TEXT    NOT NULL UNIQUE,
       password    TEXT    NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-    db.run(`
+    database.run(`
     CREATE TABLE IF NOT EXISTS posts (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       author_id   INTEGER NOT NULL,
@@ -32,7 +33,7 @@ db.serialize(() => {
       FOREIGN KEY(author_id) REFERENCES users(id)
     )
   `);
-    db.run(`
+    database.run(`
     CREATE TABLE IF NOT EXISTS media (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
       post_id     INTEGER NOT NULL,
@@ -46,7 +47,7 @@ db.serialize(() => {
 // Promise-based wrappers
 function run(sql, params = []) {
     return new Promise((resolve, reject) => {
-        db.run(sql, params, function(err) {
+        database.run(sql, params, function(err) {
             if (err) reject(err);
             else     resolve(this);     // `this.lastID`, `this.changes`
         });
@@ -55,7 +56,7 @@ function run(sql, params = []) {
 
 function get(sql, params = []) {
     return new Promise((resolve, reject) => {
-        db.get(sql, params, (err, row) => {
+        database.get(sql, params, (err, row) => {
             if (err) reject(err);
             else     resolve(row);
         });
@@ -64,7 +65,7 @@ function get(sql, params = []) {
 
 function all(sql, params = []) {
     return new Promise((resolve, reject) => {
-        db.all(sql, params, (err, rows) => {
+        database.all(sql, params, (err, rows) => {
             if (err) reject(err);
             else     resolve(rows);
         });
@@ -72,7 +73,7 @@ function all(sql, params = []) {
 }
 
 module.exports = {
-    db,
+    database,
     run,
     get,
     all

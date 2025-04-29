@@ -1,18 +1,14 @@
-const { verifyAccessToken } = require('../utils/tokenUtils');
+const { verifyToken } = require('../utils/jwtHelper');
 
-function authMiddleware(req, res, next) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Authorization header missing' });
-    }
-    const token = authHeader.split(' ')[1];
+module.exports = (req, res, next) => {
+    const hdr   = req.headers.authorization || '';
+    const token = hdr.startsWith('Bearer ') ? hdr.slice(7) : null;
+    if (!token) return res.status(401).json({ error:'Missing token' });
+
     try {
-        const payload = verifyAccessToken(token);
-        req.userId = payload.userId;
+        req.user = verifyToken(token);
         next();
     } catch {
-        return res.status(401).json({ error: 'Invalid or expired token' });
+        res.status(401).json({ error:'Invalid or expired token' });
     }
-}
-
-module.exports = authMiddleware;
+};

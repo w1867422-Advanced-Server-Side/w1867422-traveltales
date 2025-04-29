@@ -1,31 +1,23 @@
 const authService = require('../services/authService');
+const { catchAsync } = require('../utils/errorHandler');
 
-async function register(req, res) {
-    try {
-        const { email, password, username } = req.body;
-        const { userId, token } = await authService.register(
-            email,
-            password,
-            username
-        );
-        res.status(201).json({ userId, token });
-    } catch (err) {
-        res
-            .status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.register = catchAsync(async (req,res)=>{
+    const { username,email,password } = req.body;
+    const data = await authService.register({ username,email,password });
+    res.status(201).json(data);
+});
 
-async function login(req, res) {
-    try {
-        const { email, password } = req.body;
-        const { userId, token } = await authService.login(email, password);
-        res.json({ userId, token });
-    } catch (err) {
-        res.status(err.status || 500).json({ error: err.message });
-    }
-}
+exports.login = catchAsync(async (req,res)=>{
+    const { email,password } = req.body;
+    const data = await authService.login({ email,password });
+    res.json(data);
+});
 
-module.exports = {
-    register,
-    login
-};
+exports.profile = catchAsync(async (req,res)=>{
+    const user = await authService.getProfile(req.user.id);
+    res.json(user);
+});
+
+exports.logout = catchAsync(async (_req,res)=>{
+    res.json({ message:'Logged out' });
+});
