@@ -3,7 +3,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path    = require('path');
 
 const dbPath = process.env.DATABASE_FILE
-    || path.join(__dirname, '../traveltales.database');
+    || path.join(__dirname, '../traveltales.db');
 
 const database = new sqlite3.Database(dbPath, err => {
     if (err) console.error('DB connect error:', err.message);
@@ -40,6 +40,27 @@ database.serialize(() => {
       url         TEXT    NOT NULL,
       created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE
+    )
+  `);
+    database.run(`
+    CREATE TABLE IF NOT EXISTS follows (
+      follower_id INTEGER NOT NULL,
+      following_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (follower_id, following_id),
+      FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
+    )
+  `);
+    database.run(`
+    CREATE TABLE IF NOT EXISTS post_votes (
+      user_id   INTEGER NOT NULL,
+      post_id   INTEGER NOT NULL,
+      is_like   BOOLEAN NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (user_id, post_id),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
     )
   `);
 });

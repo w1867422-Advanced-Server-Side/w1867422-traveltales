@@ -9,6 +9,8 @@ require('./config/database'); // open DB + create tables
 
 const authRoutes  = require('./routes/authRoutes');
 const postRoutes  = require('./routes/postRoutes');
+const followRoutes = require('./routes/followRoutes');
+const voteRoutes   = require('./routes/voteRoutes');
 const errorHandler= require('./middleware/errorHandler');
 
 const app  = express();
@@ -28,6 +30,8 @@ app.use('/uploads', express.static(path.join(__dirname,'public/uploads')));
 
 app.use('/auth',  authRoutes);
 app.use('/posts', postRoutes);
+app.use('/follows', followRoutes);
+app.use('/posts', voteRoutes);
 
 app.use(errorHandler);
 

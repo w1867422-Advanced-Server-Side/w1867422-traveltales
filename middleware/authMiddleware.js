@@ -6,7 +6,9 @@ module.exports = (req, res, next) => {
     if (!token) return res.status(401).json({ error:'Missing token' });
 
     try {
-        req.user = verifyToken(token);
+        const payload = verifyToken(token);
+        req.user   = payload;       // full user info if you ever need email/role
+        req.userId = payload.id;
         next();
     } catch {
         res.status(401).json({ error:'Invalid or expired token' });
