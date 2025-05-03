@@ -1,8 +1,8 @@
 const voteDao = require('../dao/voteDao');
 
-exports.likePost    = (userId, postId) => voteDao.votePost(userId, postId, true);
-exports.dislikePost = (userId, postId) => voteDao.votePost(userId, postId, false);
-exports.unvotePost  = (userId, postId) => voteDao.unvotePost(userId, postId);
+exports.addLike      = (uid, pid) => voteDao.vote(uid, pid, true);
+exports.addDislike   = (uid, pid) => voteDao.vote(uid, pid, false);
+exports.removeVote   = (uid, pid) => voteDao.unvote(uid, pid);
 
-exports.getPostVotes   = postId => voteDao.countLikes(postId);
-exports.getUserVote    = (userId, postId) => voteDao.getUserVote(userId, postId);
+exports.getTotals    = pid        => voteDao.totals(pid);
+exports.getUserVote  = (uid, pid) => voteDao.userVote(uid, pid);

@@ -1,21 +1,33 @@
-const router   = require('express').Router();
-const ctrl     = require('../controllers/postController');
-const auth     = require('../middleware/authMiddleware');
-const upload   = require('../middleware/uploadImage');
+const router  = require('express').Router();
+const postCtl = require('../controllers/postController');
+const auth    = require('../middleware/authMiddleware');
+const upload  = require('../middleware/uploadImage');
 
-router.get('/',      ctrl.list);
-router.get('/:id',   ctrl.get);
+/* ─────────────────── PUBLIC ─────────────────── */
+/* List or view posts (no login required) */
+router.get('/',        postCtl.listPosts);      // GET /posts?limit&offset&sortBy
+router.get('/:postId', postCtl.getPost);        // GET /posts/:postId
 
-router.post('/',
+/* ─────────────────── AUTHENTICATED ──────────── */
+/* Create, edit, delete (JWT required) */
+router.post(
+    '/',
     auth,
-    upload.array('images',5),
-    ctrl.create);
+    upload.array('images', 5),                    // multipart images[]
+    postCtl.createPost                            // POST /posts
+);
 
-router.put('/:id',
+router.put(
+    '/:postId',
     auth,
-    upload.array('images',5),
-    ctrl.update);
+    upload.array('images', 5),                    // may add more images
+    postCtl.updatePost                            // PUT /posts/:postId
+);
 
-router.delete('/:id', auth, ctrl.remove);
+router.delete(
+    '/:postId',
+    auth,
+    postCtl.deletePost                            // DELETE /posts/:postId
+);
 
 module.exports = router;

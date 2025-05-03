@@ -1,14 +1,20 @@
 const { run, all, get } = require('../config/database');
 
-exports.addImage = async (postId,url='') =>
-    (await run(`INSERT INTO media(post_id,url) VALUES(?,?)`,[postId,url])).lastID;
+exports.add = async (postId, url='') => {
+    const r = await run(
+        `INSERT INTO media (post_id,url) VALUES (?,?)`,
+        [postId, url]
+    );
+    return r.lastID;
+};
 
-exports.updateImageUrl = (id,url) =>
-    run(`UPDATE media SET url=? WHERE id=?`,[url,id]);
+exports.updateUrl = (id, url) =>
+    run(`UPDATE media SET url=? WHERE id=?`, [url, id]);
 
-exports.getImagesByPost = postId =>
-    all(`SELECT id,url FROM media WHERE post_id=? ORDER BY id`,[postId]);
+exports.byPost = postId =>
+    all(`SELECT id,url FROM media WHERE post_id=? ORDER BY id`, [postId]);
 
-exports.countImagesByPost = postId =>
-    get(`SELECT COUNT(*) AS cnt FROM media WHERE post_id=?`,[postId])
-        .then(r=>r.cnt);
+exports.countByPost = async postId => {
+    const row = await get(`SELECT COUNT(*) AS cnt FROM media WHERE post_id=?`, [postId]);
+    return row.cnt;
+};
