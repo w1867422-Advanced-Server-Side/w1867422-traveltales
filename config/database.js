@@ -63,6 +63,15 @@ database.serialize(() => {
       FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
     )
   `);
+    database.run(`
+    CREATE TABLE IF NOT EXISTS post_comments (
+      id         INTEGER PRIMARY KEY AUTOINCREMENT,
+      post_id    INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+      user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      content    TEXT    NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
 });
 
 // Promise-based wrappers

@@ -11,6 +11,7 @@ const authRoutes  = require('./routes/authRoutes');
 const postRoutes  = require('./routes/postRoutes');
 const followRoutes = require('./routes/followRoutes');
 const voteRoutes   = require('./routes/voteRoutes');
+const commentRoutes = require('./routes/commentRoutes');
 const errorHandler= require('./middleware/errorHandler');
 
 const app  = express();
@@ -32,6 +33,7 @@ app.use('/auth',  authRoutes);
 app.use('/posts', postRoutes);
 app.use('/follows', followRoutes);
 app.use('/posts', voteRoutes);
+app.use('/posts', commentRoutes);
 
 app.use(errorHandler);
 
