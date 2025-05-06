@@ -3,6 +3,8 @@ const postCtl = require('../controllers/postController');
 const auth    = require('../middleware/authMiddleware');
 const upload  = require('../middleware/uploadImage');
 
+router.get('/feed', auth, postCtl.listFeed);
+
 router.get('/',        postCtl.listPosts);
 router.get('/:postId', postCtl.getPost);
 

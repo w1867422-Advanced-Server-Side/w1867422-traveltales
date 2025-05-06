@@ -31,3 +31,13 @@ exports.deletePost = catchAsync(async (req, res) => {
     await postSvc.deletePost(req.user.id, +req.params.postId);
     res.sendStatus(204);
 });
+
+exports.listFeed = catchAsync(async (req, res) => {
+    const limit  = +req.query.limit  || 10;
+    const offset = +req.query.offset || 0;
+    const sortBy = req.query.sortBy  || 'newest';
+    const posts  = await postSvc.listFeed(
+        req.user.id, limit, offset, sortBy
+    );
+    res.json(posts);
+});

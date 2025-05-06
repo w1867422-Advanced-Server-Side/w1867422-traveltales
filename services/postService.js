@@ -1,5 +1,6 @@
 const postDao  = require('../dao/postDao');
 const mediaDao = require('../dao/mediaDao');
+const followDao = require('../dao/followDao');
 const fs       = require('fs/promises');
 const path     = require('path');
 
@@ -54,3 +55,10 @@ exports.getPostById = async id => {
 
 exports.listPosts = (limit, offset, sortBy = 'newest') =>
     postDao.list(limit, offset, sortBy);
+
+/* posts only from authors the user follows */
+exports.listFeed = async (userId, limit = 10, offset = 0, sortBy = 'newest') => {
+    const rows = await followDao.getFollowing(userId);
+    const ids = rows.map(r => r.id);
+    return postDao.listByAuthors(ids, limit, offset, sortBy);
+};

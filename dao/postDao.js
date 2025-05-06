@@ -51,3 +51,48 @@ exports.list = (limit, offset, sortBy) => {
         [limit, offset]
     );
 };
+
+exports.listByAuthors = async function(authorIds, limit = 10, offset = 0, sortBy = 'newest') {
+    if (authorIds.length === 0) return [];
+
+    const authorIdValues = authorIds.map(() => '?').join(',');
+
+    const orderClause =
+        sortBy === 'likes'    ? 'v.likes DESC' :
+            sortBy === 'comments' ? 'c.cnt DESC' :
+                'p.created_at DESC';
+
+    const sql = `
+    SELECT
+      p.*,
+      u.username        AS author,
+      COALESCE(v.likes, 0)    AS likes,
+      COALESCE(v.dislikes, 0) AS dislikes,
+      COALESCE(c.cnt, 0)      AS comments
+    FROM posts p
+    JOIN users u ON u.id = p.author_id
+
+    LEFT JOIN (
+      SELECT 
+        post_id,
+        SUM(CASE WHEN is_like=1 THEN 1 ELSE 0 END) AS likes,
+        SUM(CASE WHEN is_like=0 THEN 1 ELSE 0 END) AS dislikes
+      FROM post_votes
+      GROUP BY post_id
+    ) v ON v.post_id = p.id
+
+    LEFT JOIN (
+      SELECT 
+        post_id,
+        COUNT(*) AS cnt
+      FROM post_comments
+      GROUP BY post_id
+    ) c ON c.post_id = p.id
+
+    WHERE p.author_id IN (${authorIdValues})
+    ORDER BY ${orderClause}
+    LIMIT ? OFFSET ?
+  `;
+
+    return all(sql, [...authorIds, limit, offset]);
+};
