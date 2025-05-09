@@ -27,6 +27,7 @@ exports.byId = id =>
         [id]
     );
 
+/* Post List */
 exports.list = (limit, offset, sortBy) => {
     let order = 'p.created_at DESC';
     if (sortBy === 'likes')    order = 'likes DESC';
@@ -37,7 +38,8 @@ exports.list = (limit, offset, sortBy) => {
         p.*,
         u.username AS author,
         COALESCE(v.likes,0)    AS likes,
-        COALESCE(v.dislikes,0) AS dislikes
+        COALESCE(v.dislikes,0) AS dislikes,
+        COALESCE(c.cnt,0)      AS comments
      FROM posts p
      JOIN users u ON u.id = p.author_id
      LEFT JOIN (
@@ -46,12 +48,19 @@ exports.list = (limit, offset, sortBy) => {
           SUM(CASE WHEN is_like=0 THEN 1 ELSE 0 END) AS dislikes
         FROM post_votes GROUP BY post_id
      ) v ON v.post_id = p.id
+     LEFT JOIN (
+      SELECT post_id,
+             COUNT(*) AS cnt
+      FROM post_comments
+      GROUP BY post_id
+    ) c ON c.post_id = p.id
      ORDER BY ${order}
      LIMIT ? OFFSET ?`,
         [limit, offset]
     );
 };
 
+/* Personal Feed */
 exports.listByAuthors = async function(authorIds, limit = 10, offset = 0, sortBy = 'newest') {
     if (authorIds.length === 0) return [];
 
