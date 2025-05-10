@@ -1,11 +1,26 @@
 const postSvc       = require('../services/postService');
 const { catchAsync } = require('../utils/errorHandler');
 
+/** GET /posts?limit=&offset=&sortBy=&search=&type= */
 exports.listPosts = catchAsync(async (req, res) => {
-    const limit  = +req.query.limit  || 10;
-    const offset = +req.query.offset || 0;
-    const sortBy = req.query.sortBy  || 'newest';
-    res.json(await postSvc.listPosts(limit, offset, sortBy));
+    const {
+        limit   = '10',
+        offset  = '0',
+        sortBy  = 'newest',
+        search  = '',
+        type    = 'title'     // 'title' | 'author' | 'country'
+    } = req.query;
+
+    const filters = {
+        limit:  Number(limit),
+        offset: Number(offset),
+        sortBy,
+        search,
+        type
+    };
+
+    const posts = await postSvc.listPosts(filters);
+    res.json(posts);
 });
 
 exports.getPost = catchAsync(async (req, res) => {
@@ -32,12 +47,24 @@ exports.deletePost = catchAsync(async (req, res) => {
     res.sendStatus(204);
 });
 
+/** GET /posts/feed?limit=&offset=&sortBy=&search=&type= */
 exports.listFeed = catchAsync(async (req, res) => {
-    const limit  = +req.query.limit  || 10;
-    const offset = +req.query.offset || 0;
-    const sortBy = req.query.sortBy  || 'newest';
-    const posts  = await postSvc.listFeed(
-        req.user.id, limit, offset, sortBy
-    );
+    const {
+        limit   = '10',
+        offset  = '0',
+        sortBy  = 'newest',
+        search  = '',
+        type    = 'title'
+    } = req.query;
+
+    const filters = {
+        limit:  Number(limit),
+        offset: Number(offset),
+        sortBy,
+        search,
+        type
+    };
+
+    const posts = await postSvc.listFeed(req.user.id, filters);
     res.json(posts);
 });

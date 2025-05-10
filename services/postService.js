@@ -53,12 +53,15 @@ exports.getPostById = async id => {
     return { ...post, images };
 };
 
-exports.listPosts = (limit, offset, sortBy = 'newest') =>
-    postDao.list(limit, offset, sortBy);
+exports.listPosts = async (filters = {}) =>
+    postDao.list(filters);
 
-/* posts only from authors the user follows */
-exports.listFeed = async (userId, limit = 10, offset = 0, sortBy = 'newest') => {
-    const rows = await followDao.getFollowing(userId);
-    const ids = rows.map(r => r.id);
-    return postDao.listByAuthors(ids, limit, offset, sortBy);
+exports.listFeed = async (userId, filters = {}) => {
+    const rows     = await followDao.getFollowing(userId);
+    const authorIds = rows.map(r => r.id);
+    if (authorIds.length === 0) return [];
+    return postDao.listByAuthors({
+        authorIds,
+        ...filters
+    });
 };
