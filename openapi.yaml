@@ -1,0 +1,582 @@
+openapi: 3.0.3
+info:
+  title: TravelTales API
+  version: 1.0.0
+  description: |
+    The TravelTales backend provides user authentication, blog post CRUD,
+    infinite-scroll feeds, voting, commenting, and follow/unfollow social features.
+
+servers:
+  - url: http://localhost:3000
+
+security:
+  - bearerAuth: []
+
+paths:
+
+  /auth/register:
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Created, returns token & user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Bad request (e.g. user exists)
+
+  /auth/login:
+    post:
+      summary: Log in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: OK, returns token & user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+
+  /auth/profile:
+    get:
+      summary: Get current user's profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+
+  /auth/logout:
+    post:
+      summary: Log out (invalidate server-side if needed)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Logged out
+
+  /posts:
+    get:
+      summary: List posts (with optional search & sort)
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of posts to return
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          description: Number of posts to skip
+          schema:
+            type: integer
+            default: 0
+        - name: sortBy
+          in: query
+          description: Sort order
+          schema:
+            type: string
+            enum: [newest, likes, comments]
+            default: newest
+        - name: search
+          in: query
+          description: Free-text search term
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Field to search (title, author username, or country)
+          schema:
+            type: string
+            enum: [title, author, country]
+            default: title
+      responses:
+        '200':
+          description: A page of posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+
+    post:
+      summary: Create a new post
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                country:
+                  type: string
+                visitDate:
+                  type: string
+                  format: date
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '201':
+          description: Created post ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+
+  /posts/{postId}:
+    parameters:
+      - $ref: '#/components/parameters/postId'
+    get:
+      summary: Get a single post
+      responses:
+        '200':
+          description: The post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '404':
+          description: Not found
+
+    put:
+      summary: Update a post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                content:
+                  type: string
+                country:
+                  type: string
+                visitDate:
+                  type: string
+                  format: date
+                images:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+      responses:
+        '200':
+          description: Updated post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PostDetail'
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+
+    delete:
+      summary: Delete a post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: Not found
+
+  /posts/feed:
+    get:
+      summary: List “my feed” (posts by followed users)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [newest, likes, comments]
+            default: newest
+      responses:
+        '200':
+          description: A page of feed posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+
+  /posts/{postId}/votes:
+    get:
+      summary: Get like/dislike counts
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '200':
+          description: Vote counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VoteCount'
+
+  /posts/{postId}/like:
+    post:
+      summary: Like a post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Liked
+
+  /posts/{postId}/dislike:
+    post:
+      summary: Dislike a post
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Disliked
+
+  /posts/{postId}/vote:
+    delete:
+      summary: Remove my vote
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      responses:
+        '204':
+          description: Vote removed
+
+  /posts/{postId}/comments:
+    parameters:
+      - $ref: '#/components/parameters/postId'
+    get:
+      summary: List comments on a post
+      responses:
+        '200':
+          description: Array of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Comment'
+    post:
+      summary: Add a comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewComment'
+      responses:
+        '201':
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+
+  /posts/{postId}/comments/{commentId}:
+    parameters:
+      - $ref: '#/components/parameters/postId'
+      - name: commentId
+        in: path
+        required: true
+        schema:
+          type: integer
+    delete:
+      summary: Delete a comment
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/postId'
+        - name: commentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Deleted
+
+  /follows/{userId}/follow:
+    post:
+      summary: Follow a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Now following
+    delete:
+      summary: Unfollow a user
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Unfollowed
+
+  /follows/following:
+    get:
+      summary: List users I follow
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Array of followed users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserBrief'
+
+  /follows/{userId}/followers:
+    get:
+      summary: List users following a given user
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Array of followers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserBrief'
+
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    postId:
+      name: postId
+      in: path
+      required: true
+      schema:
+        type: integer
+
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - username
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        username:
+          type: string
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+        role:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    UserBrief:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: integer
+        author_id:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        country:
+          type: string
+        visit_date:
+          type: string
+          format: date
+        created_at:
+          type: string
+          format: date-time
+        author:
+          type: string
+        likes:
+          type: integer
+        dislikes:
+          type: integer
+        comments:
+          type: integer
+
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    PostDetail:
+      allOf:
+        - $ref: '#/components/schemas/Post'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                $ref: '#/components/schemas/Media'
+
+    VoteCount:
+      type: object
+      properties:
+        likes:
+          type: integer
+        dislikes:
+          type: integer
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        post_id:
+          type: integer
+        user_id:
+          type: integer
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    NewComment:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
