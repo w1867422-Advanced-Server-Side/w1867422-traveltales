@@ -1,10 +1,36 @@
-const followDao = require('../dao/followDao');
+const followDao = require('../dao/followDao')
 
-exports.followUser = (followerId, targetId) =>
-    followDao.follow(followerId, targetId);
+/**
+ * Make followerId follow targetId.
+ */
+const followUser = async (followerId, targetId) => {
+    await followDao.follow(followerId, targetId)
+}
 
-exports.unfollowUser = (followerId, targetId) =>
-    followDao.unfollow(followerId, targetId);
+/**
+ * Make followerId unfollow targetId.
+ */
+const unfollowUser = async (followerId, targetId) => {
+    await followDao.unfollow(followerId, targetId)
+}
 
-exports.getFollowing   = userId => followDao.getFollowing(userId);
-exports.getFollowers   = userId => followDao.getFollowers(userId);
+/**
+ * List all users that the given userId is following.
+ */
+const getFollowing = async userId => {
+    return followDao.getFollowing(userId)
+}
+
+/**
+ * List all users who follow the given userId.
+ */
+const getFollowers = async userId => {
+    return followDao.getFollowers(userId)
+}
+
+module.exports = {
+    followUser,
+    unfollowUser,
+    getFollowing,
+    getFollowers
+}

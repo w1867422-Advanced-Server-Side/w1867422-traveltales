@@ -1,8 +1,40 @@
-const voteDao = require('../dao/voteDao');
+const voteDao = require('../dao/voteDao')
 
-exports.addLike      = (uid, pid) => voteDao.vote(uid, pid, true);
-exports.addDislike   = (uid, pid) => voteDao.vote(uid, pid, false);
-exports.removeVote   = (uid, pid) => voteDao.unvote(uid, pid);
+/**
+ * Register a “like” (is_like = true) by this user on the given post.
+ */
+const addLike = (userId, postId) =>
+    voteDao.vote(userId, postId, true)
 
-exports.getTotals    = pid        => voteDao.totals(pid);
-exports.getUserVote  = (uid, pid) => voteDao.userVote(uid, pid);
+/**
+ * Register a “dislike” (is_like = false) by this user on the given post.
+ */
+const addDislike = (userId, postId) =>
+    voteDao.vote(userId, postId, false)
+
+/**
+ * Remove any existing vote (like or dislike) by this user on the post.
+ */
+const removeVote = (userId, postId) =>
+    voteDao.unvote(userId, postId)
+
+/**
+ * Get the total likes & dislikes for the given post.
+ */
+const getTotals = postId =>
+    voteDao.totals(postId)
+
+/**
+ * Get how the given user has voted on the post.
+ * Resolves to true (liked), false (disliked), or null (no vote).
+ */
+const getUserVote = (userId, postId) =>
+    voteDao.userVote(userId, postId)
+
+module.exports = {
+    addLike,
+    addDislike,
+    removeVote,
+    getTotals,
+    getUserVote
+}

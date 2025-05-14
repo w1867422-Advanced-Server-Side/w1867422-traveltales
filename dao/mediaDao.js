@@ -1,20 +1,60 @@
-const { run, all, get } = require('../config/database');
+const { run, get, all } = require('../config/database')
 
-exports.add = async (postId, url='') => {
-    const r = await run(
-        `INSERT INTO media (post_id,url) VALUES (?,?)`,
-        [postId, url]
-    );
-    return r.lastID;
-};
+/**
+ * Create a new media record for a post.
+ * Returns the new media.id.
+ */
+const add = async (postId, url = '') => {
+    const sql = `
+    INSERT INTO media (post_id, url)
+    VALUES (?, ?)
+  `
+    const result = await run(sql, [postId, url])
+    return result.lastID
+}
 
-exports.updateUrl = (id, url) =>
-    run(`UPDATE media SET url=? WHERE id=?`, [url, id]);
+/**
+ * Update the URL of an existing media record.
+ */
+const updateUrl = (id, url) => {
+    const sql = `
+    UPDATE media
+    SET url = ?
+    WHERE id = ?
+  `
+    return run(sql, [url, id])
+}
 
-exports.byPost = postId =>
-    all(`SELECT id,url FROM media WHERE post_id=? ORDER BY id`, [postId]);
+/**
+ * Fetch all media items for a given post, ordered by id.
+ * Returns an array of { id, url }.
+ */
+const byPost = postId => {
+    const sql = `
+    SELECT id, url
+    FROM media
+    WHERE post_id = ?
+    ORDER BY id
+  `
+    return all(sql, [postId])
+}
 
-exports.countByPost = async postId => {
-    const row = await get(`SELECT COUNT(*) AS cnt FROM media WHERE post_id=?`, [postId]);
-    return row.cnt;
-};
+/**
+ * Count how many media items are attached to a given post.
+ */
+const countByPost = async postId => {
+    const sql = `
+    SELECT COUNT(*) AS cnt
+    FROM media
+    WHERE post_id = ?
+  `
+    const row = await get(sql, [postId])
+    return row.cnt
+}
+
+module.exports = {
+    add,
+    updateUrl,
+    byPost,
+    countByPost
+}
