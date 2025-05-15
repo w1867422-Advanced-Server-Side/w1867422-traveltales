@@ -1,31 +1,31 @@
 const router  = require('express').Router();
-const postCtl = require('../controllers/postController');
+const postController = require('../controllers/postController');
 const auth    = require('../middleware/authMiddleware');
 const upload  = require('../middleware/uploadImage');
 
-router.get('/feed', auth, postCtl.listFeed);
+router.get('/feed', auth, postController.listFeed);
 
-router.get('/',        postCtl.listPosts);
-router.get('/:postId', postCtl.getPost);
+router.get('/',        postController.listPosts);
+router.get('/:postId', postController.getPost);
 
 router.post(
     '/',
     auth,
     upload.array('images', 5),
-    postCtl.createPost
+    postController.createPost
 );
 
 router.put(
     '/:postId',
     auth,
     upload.array('images', 5),
-    postCtl.updatePost
+    postController.updatePost
 );
 
 router.delete(
     '/:postId',
     auth,
-    postCtl.deletePost
+    postController.deletePost
 );
 
 module.exports = router;
